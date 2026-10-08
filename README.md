@@ -11,7 +11,8 @@ Warp your face into a six-point radar chart of your abilities or mood.
    or with the Erase/Restore brush (pinch to zoom up to 400%). Tap **Tips** for good and bad examples.
 3. Drag the six sliders. Values above 2 stretch your face toward that word; all 10s make a spider-web star.
    Rotate the face with the **Rotate** control or a two-finger twist on the chart.
-4. Press **Breathe** to animate, or **Make image** to save a PNG. With labels off you can zoom and frame the face.
+4. Press **Breathe** to animate, or **Save** to download a PNG. With labels off you can move, zoom and rotate the face
+   (two fingers on phones; wheel and Shift + wheel on desktop). **Reset** sets every value to 0 and restores the labels.
 
 Photos are processed entirely in the browser and never uploaded. Automatic background removal uses
 [MediaPipe Selfie Segmentation](https://github.com/google-ai-edge/mediapipe) (Apache 2.0), loaded from jsDelivr.

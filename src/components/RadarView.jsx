@@ -214,8 +214,8 @@ export default function RadarView({ ref, onLeave, onMakeImage, onDemoReady, leav
         </button>
         <button className="act primary" onClick={() => (playing ? stopPlaying() : startPlaying())}>{playing ? "Pause" : "Breathe"}</button>
         <button className="act" onClick={() => setValues(baseRef.current.map(() => Math.round(Math.random() * 20) / 2))}>Shuffle</button>
-        <button className="act" onClick={() => setValues(PRESETS[preset].values.slice())}>Reset</button>
-        <button className="act" onClick={onMakeImage}>Make image</button>
+        <button className="act" onClick={() => { const l = PRESETS[preset].labels.slice(); setLabels(l); labelsRef.current = l; setValues(Array(N).fill(0)); }}>Reset</button>
+        <button className="act" onClick={onMakeImage}>Save</button>
       </div>
       <p className="note">{NOTES[preset]}</p>
     </div>
