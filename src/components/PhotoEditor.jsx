@@ -9,8 +9,8 @@ const HINTS = {
   restore: "Paint to bring parts back. Pinch to zoom in up to 400%.",
 };
 const EXAMPLES = [
-  { src: "hints/wrong-background.png", ok: false, caption: "Background left in" },
-  { src: "hints/wrong-body.png", ok: false, caption: "Body and long hair left in" },
+  { src: "hints/wrong-background.png", ok: false, caption: "Body left in" },
+  { src: "hints/wrong-body.png", ok: false, caption: "Face not centered" },
   { src: "hints/right-face.png", ok: true, caption: "Just the face, centered" },
 ];
 
