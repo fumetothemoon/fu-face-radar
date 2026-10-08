@@ -1,12 +1,12 @@
 /* Layout: one centered column; the warped portrait is the hero, quiet mono controls underneath, like a lab readout. */
 :root {
-  --bg: #f6f6f4; --surface: #ffffff; --ink: #1b1b1a; --muted: #75746f; --line: #c9c8c2; --accent: #c2477a; --danger: #b3261e;
+  --bg: #f6f6f4; --surface: #ffffff; --ink: #1b1b1a; --muted: #75746f; --line: #c9c8c2; --accent: #c2477a; --danger: #b3261e; --ok: #2e7d32;
   --display: "Instrument Serif", Georgia, serif;
   --body: "Figtree", system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, monospace;
 }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #151515; --surface: #1e1e1d; --ink: #efeeea; --muted: #9b9a94; --line: #4a4946; --accent: #ec84ad; --danger: #f2a39b; color-scheme: dark } }
-:root[data-theme="dark"] { --bg: #151515; --surface: #1e1e1d; --ink: #efeeea; --muted: #9b9a94; --line: #4a4946; --accent: #ec84ad; --danger: #f2a39b; color-scheme: dark }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #151515; --surface: #1e1e1d; --ink: #efeeea; --muted: #9b9a94; --line: #4a4946; --accent: #ec84ad; --danger: #e5534b; --ok: #3f9a46; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #151515; --surface: #1e1e1d; --ink: #efeeea; --muted: #9b9a94; --line: #4a4946; --accent: #ec84ad; --danger: #e5534b; --ok: #3f9a46; color-scheme: dark }
 * { box-sizing: border-box }
 [hidden] { display: none !important }
 #root { display: contents }
@@ -20,7 +20,7 @@ h1 em { color: var(--accent) }
 .presets { display: flex; gap: 1.4cqw }
 .chip { font-family: var(--mono); font-size: 3cqw; background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 1.2cqw 2.8cqw; cursor: pointer }
 .chip[aria-pressed="true"] { color: var(--ink); border-color: var(--ink) }
-.stage { position: relative; width: 100%; aspect-ratio: 1 / 1; flex: none }
+.stage { position: relative; width: 100%; aspect-ratio: 1 / 1; flex: none; touch-action: none }
 .stage canvas { position: absolute; inset: 0; width: 100%; height: 100% }
 .controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.6cqw 5cqw }
 .stat { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0.6cqw 2cqw }
@@ -79,3 +79,36 @@ button.act.danger { color: var(--danger); border-color: var(--danger) }
 .ed-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 2cqw; margin-top: auto }
 .export-actions { display: flex; gap: 2cqw; justify-content: center; flex-wrap: wrap }
 .export-actions button.act { padding: 2.4cqw 5cqw }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0 }
+.ed-canvas.checker.move { cursor: grab }
+.ed-canvas.checker.move:active { cursor: grabbing }
+.ed-title-row { display: flex; align-items: center; justify-content: space-between; gap: 2cqw }
+.busy { position: absolute; inset: 0; z-index: 6; display: grid; place-content: center; justify-items: center; gap: 4cqw; padding: 10cqw; text-align: center;
+  background: color-mix(in srgb, var(--surface) 86%, transparent); backdrop-filter: blur(2px) }
+.busy p { margin: 0; font-size: 3.8cqw; color: var(--ink); max-width: 60cqw; line-height: 1.4 }
+.spinner { width: 11cqw; height: 11cqw; border-radius: 50%; border: 1cqw solid var(--line); border-top-color: var(--accent); animation: spin .9s linear infinite }
+@keyframes spin { to { transform: rotate(360deg) } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s } }
+.tips-backdrop { position: absolute; inset: 0; z-index: 7; background: rgba(10, 10, 10, 0.45); display: grid; place-items: center; padding: 5cqw }
+.tips { background: var(--surface); border: 1px solid var(--line); border-radius: 4cqw; padding: 6cqw 5cqw; display: grid; gap: 3.4cqw; width: 100% }
+.tips h3 { font-family: var(--display); font-weight: 400; font-size: 6.6cqw; line-height: 1.1; margin: 0 }
+.tips p { margin: 0; font-size: 3.5cqw; line-height: 1.45; color: var(--muted) }
+.tips-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.4cqw }
+.tips-grid li { display: grid; gap: 1.6cqw; align-content: start }
+.tip-img { position: relative; aspect-ratio: 1 / 1; border-radius: 2.4cqw; border: 1px solid var(--line); overflow: hidden;
+  background-color: var(--surface); background-image: repeating-conic-gradient(var(--line) 0 25%, transparent 0 50%); background-size: 3cqw 3cqw }
+.tip-img img { width: 100%; height: 100%; object-fit: contain; display: block }
+.tip-mark { position: absolute; top: 1.2cqw; right: 1.2cqw; width: 6.4cqw; height: 6.4cqw; border-radius: 50%; display: grid; place-items: center; font-size: 4cqw; color: #fff }
+.tip-mark.bad { background: var(--danger) }
+.tip-mark.ok { background: var(--ok) }
+.tip-cap { font-size: 3cqw; line-height: 1.3; color: var(--ink); text-align: center }
+.rot-btn { position: absolute; top: 0; right: 0; display: inline-flex; align-items: center; gap: 1.2cqw; background: var(--surface); color: var(--ink) }
+.rot-btn svg { font-size: 3.6cqw }
+.rot-panel { position: absolute; top: 8cqw; left: 0; right: 0; display: flex; align-items: center; gap: 2cqw; padding: 2cqw 3cqw;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 3cqw }
+.rot-panel .ed-row { flex: 1 }
+.ex-canvas { width: 100%; max-width: 100%; aspect-ratio: 1 / 1; border: 1px solid var(--line); border-radius: 2cqw; background: var(--surface) }
+.ex-canvas.bare { touch-action: none; cursor: grab; background-image: repeating-conic-gradient(var(--line) 0 25%, transparent 0 50%); background-size: 4cqw 4cqw }
+.ex-zoom { width: 100% }
+.ex-zoom-val { min-width: 9cqw; text-align: right; font-variant-numeric: tabular-nums }

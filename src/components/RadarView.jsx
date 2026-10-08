@@ -14,12 +14,15 @@ export default function RadarView({ ref, onLeave, onMakeImage, onDemoReady, leav
   const [base, setBase] = useState(PRESETS.ability.values);
   const [display, setDisplay] = useState(PRESETS.ability.values);
   const [playing, setPlaying] = useState(false);
+  const [rotation, setRotationState] = useState(0);
+  const [rotOpen, setRotOpen] = useState(false);
 
   const stageRef = useRef(null), glRef = useRef(null), ovRef = useRef(null);
   const warpRef = useRef(null), shownRef = useRef(PRESETS.ability.values.slice());
   const labelsRef = useRef(labels), baseRef = useRef(base), playingRef = useRef(false);
   const sizeRef = useRef(0), dprRef = useRef(1), rafRef = useRef(0), tweenRef = useRef(0);
   labelsRef.current = labels; baseRef.current = base;
+  const rotRef = useRef(0), rotRaf = useRef(0), twistRef = useRef(null), touchRef = useRef(new Map());
 
   const draw = useCallback(() => {
     const S = sizeRef.current;
@@ -112,8 +115,36 @@ export default function RadarView({ ref, onLeave, onMakeImage, onDemoReady, leav
   };
   const onLabel = (k, text) => { const next = labels.slice(); next[k] = text; setLabels(next); };
 
+  // Rotation: re-runs the warp setup at most once per frame.
+  const rotate = useCallback((deg) => {
+    const d = Math.max(-180, Math.min(180, Math.round(deg)));
+    rotRef.current = d; setRotationState(d);
+    if (rotRaf.current) return;
+    rotRaf.current = requestAnimationFrame(() => { rotRaf.current = 0; warpRef.current.setRotation(rotRef.current); draw(); });
+  }, [draw]);
+
+  // Two-finger twist on the chart rotates the face.
+  const onStageDown = (e) => {
+    touchRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (touchRef.current.size === 2) {
+      const [a, b] = [...touchRef.current.values()];
+      twistRef.current = { a0: Math.atan2(b.y - a.y, b.x - a.x), r0: rotRef.current };
+    }
+  };
+  const onStageMove = (e) => {
+    if (!touchRef.current.has(e.pointerId)) return;
+    touchRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (touchRef.current.size === 2 && twistRef.current) {
+      const [a, b] = [...touchRef.current.values()], ang = Math.atan2(b.y - a.y, b.x - a.x);
+      let deg = twistRef.current.r0 + ((ang - twistRef.current.a0) * 180) / Math.PI;
+      deg = ((deg + 540) % 360) - 180;
+      rotate(deg);
+    }
+  };
+  const onStageUp = (e) => { touchRef.current.delete(e.pointerId); if (touchRef.current.size < 2) twistRef.current = null; };
+
   useImperativeHandle(ref, () => ({
-    setFace(src) { warpRef.current.setFace(src); draw(); },
+    setFace(src) { rotRef.current = 0; setRotationState(0); setRotOpen(false); warpRef.current.setFace(src); draw(); },
     reset() { if (playingRef.current) stopPlaying(); applyPreset("ability"); },
     restart() { if (playingRef.current) stopPlaying(); applyPreset(preset); },
     stop() { if (playingRef.current) stopPlaying(); },
@@ -150,9 +181,21 @@ export default function RadarView({ ref, onLeave, onMakeImage, onDemoReady, leav
         </div>
       </header>
 
-      <div className="stage" ref={stageRef}>
+      <div className="stage" ref={stageRef} onPointerDown={onStageDown} onPointerMove={onStageMove} onPointerUp={onStageUp} onPointerCancel={onStageUp}>
         <canvas ref={glRef} aria-hidden="true" />
         <canvas ref={ovRef} role="img" aria-label="Portrait stretched into a six-point radar shape" />
+        <button className="chip rot-btn" aria-expanded={rotOpen} aria-controls="rotPanel" onClick={() => setRotOpen((o) => !o)}>
+          <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7" /><path d="M20 4v7h-7" /></svg>
+          <span>{rotation === 0 ? "Rotate" : `${rotation}°`}</span>
+        </button>
+        {rotOpen && (
+          <div className="rot-panel" id="rotPanel">
+            <label className="ed-row" htmlFor="rotate"><span>Rotate</span>
+              <input type="range" id="rotate" min="-180" max="180" step="1" value={rotation} onChange={(e) => rotate(+e.target.value)} />
+            </label>
+            <button className="chip" disabled={rotation === 0} onClick={() => rotate(0)}>0°</button>
+          </div>
+        )}
       </div>
 
       <div className="controls">

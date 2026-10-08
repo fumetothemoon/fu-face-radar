@@ -37,21 +37,39 @@ export class FaceWarp {
     this.tex = gl.createTexture();
   }
 
+  // src: the square face image. Rotation is applied before warping, so the
+  // star shape is rebuilt from the rotated outline.
   setFace(src) {
+    this.src = src; this.angle = 0;
+    this.apply();
+  }
+
+  setRotation(deg) {
+    this.angle = deg;
+    if (this.src) this.apply();
+  }
+
+  apply() {
     const gl = this.gl;
     if (!gl) return;
+    const n = 800, rc = this.rotC || (this.rotC = document.createElement("canvas"));
+    rc.width = n; rc.height = n;
+    const x = rc.getContext("2d");
+    x.clearRect(0, 0, n, n);
+    x.translate(n / 2, n / 2); x.rotate((this.angle * Math.PI) / 180);
+    x.drawImage(this.src, -n / 2, -n / 2, n, n);
     gl.bindTexture(gl.TEXTURE_2D, this.tex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, rc);
     [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T].forEach((w) => gl.texParameteri(gl.TEXTURE_2D, w, gl.CLAMP_TO_EDGE));
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    this.measureEdges(src);
+    this.measureEdges(rc);
     this.precompute();
     this.ready = true;
   }
 
   // How far the visible (non-transparent) image reaches from the centre, per degree.
   measureEdges(src) {
-    const n = src.naturalWidth || src.width, cv = document.createElement("canvas"); cv.width = n; cv.height = n;
+    const n = 240, cv = document.createElement("canvas"); cv.width = n; cv.height = n;
     const cx = cv.getContext("2d"); cx.drawImage(src, 0, 0, n, n);
     const a = cx.getImageData(0, 0, n, n).data, h = n / 2, raw = new Float32Array(360);
     for (let i = 0; i < 360; i++) {

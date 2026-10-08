@@ -6,10 +6,12 @@ Warp your face into a six-point radar chart of your abilities or mood.
 
 ## How it works
 
-1. Upload a selfie and crop it to a square.
-2. Remove the background automatically or with the erase/restore brush (pinch to zoom up to 400%).
+1. Upload a selfie.
+2. **Prepare your face**: frame it inside the face guide (Move), then remove the background automatically
+   or with the Erase/Restore brush (pinch to zoom up to 400%). Tap **Tips** for good and bad examples.
 3. Drag the six sliders. Values above 2 stretch your face toward that word; all 10s make a spider-web star.
-4. Press **Breathe** to animate, or **Make image** to save a PNG (with or without the chart).
+   Rotate the face with the **Rotate** control or a two-finger twist on the chart.
+4. Press **Breathe** to animate, or **Make image** to save a PNG. With labels off you can zoom and frame the face.
 
 Photos are processed entirely in the browser and never uploaded. Automatic background removal uses
 [MediaPipe Selfie Segmentation](https://github.com/google-ai-edge/mediapipe) (Apache 2.0), loaded from jsDelivr.
@@ -36,6 +38,7 @@ Every push to `main` builds the site and deploys it to GitHub Pages through `.gi
 | `src/lib/segment.js` | Automatic background removal |
 | `src/config.js` | Presets, notes and gallery images |
 | `public/demo-face.png` | Demo face used for the generated gallery |
+| `public/hints/` | Example images shown in the Tips dialog |
 
 ## Adding gallery images
 
