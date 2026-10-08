@@ -7,7 +7,7 @@ export const PRESETS = {
 
 // Mood axes, clockwise from the top: happy, calm, tired, sad, angry, anxious.
 // Labels come from src/i18n.js (English / Traditional Chinese).
-export const MOOD_VALUES = [8, 6, 4, 2, 3, 5];
+export const MOOD_VALUES = [0, 0, 0, 0, 0, 0]; // every slider starts at 0
 
 // Abilities / vibes are hidden for now; kept here so they can come back.
 export const NOTES = {

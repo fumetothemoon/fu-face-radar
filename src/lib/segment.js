@@ -33,8 +33,16 @@ function runSegment(ss, image) {
   });
 }
 
+// Requests run one at a time (the model has a single result callback).
+let queue = Promise.resolve();
+export function personMask(image, onStatus) {
+  const run = queue.then(() => personMaskNow(image, onStatus));
+  queue = run.catch(() => {});
+  return run;
+}
+
 // Returns a 256×256 canvas whose alpha is the person mask.
-export async function personMask(image, onStatus) {
+async function personMaskNow(image, onStatus) {
   onStatus?.("loading");
   const seg = await getSegmenter();
   onStatus?.("finding");

@@ -80,7 +80,10 @@ export default function RadarView({ ref, onLeave, onMakeImage, onDemoReady, leav
   const stopPlaying = useCallback(() => {
     playingRef.current = false; setPlaying(false);
     cancelAnimationFrame(rafRef.current);
-    shownRef.current = baseRef.current.slice(); setDisplay(baseRef.current.slice()); draw();
+    // Pause keeps whatever shape the face had at that moment.
+    const now = shownRef.current.map((v) => Math.round(v * 10) / 10);
+    shownRef.current = now.slice(); baseRef.current = now.slice();
+    setBase(now.slice()); setDisplay(now.slice()); draw();
   }, [draw]);
   const startPlaying = useCallback(() => {
     playingRef.current = true; setPlaying(true);

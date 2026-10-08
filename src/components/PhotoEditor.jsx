@@ -49,7 +49,8 @@ export default function PhotoEditor({ image, onCancel, onDone }) {
   const t = useT();
   const canvasRef = useRef(null), engineRef = useRef(null), doneRef = useRef(null);
   useTouchLock(canvasRef);
-  const [s, setS] = useState({ mode: "move", cropZoom: 1, viewZoom: 1, canUndo: false });
+  const [s, setS] = useState({ mode: "move", cropZoom: 1, viewZoom: 1, canUndo: false, trim: true });
+  const [check, setCheck] = useState(false);
   const [brush, setBrush] = useState(48);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState("");
@@ -57,12 +58,15 @@ export default function PhotoEditor({ image, onCancel, onDone }) {
   const [tips, setTips] = useState(() => !optedOut());
   const [dontShow, setDontShow] = useState(optedOut);
 
+  // Background removal runs as soon as the photo opens.
   useEffect(() => {
     const eng = (engineRef.current = new EditorEngine(canvasRef.current, image, setS));
+    runAuto(eng);
     return () => eng.destroy();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [image]);
   useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") (tips ? closeTips() : onCancel()); };
+    const onKey = (e) => { if (e.key === "Escape") (check ? setCheck(false) : tips ? closeTips() : onCancel()); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   });
@@ -76,12 +80,21 @@ export default function PhotoEditor({ image, onCancel, onDone }) {
   const eng = () => engineRef.current;
   const move = s.mode === "move";
 
-  const auto = async () => {
+  // Only the editor that started a run may update the screen (a new photo replaces it).
+  const runAuto = async (target = engineRef.current) => {
+    const live = () => engineRef.current === target;
     setMsg(""); setBusy(t.autoLoading);
-    const status = (key) => setBusy(key === "finding" ? t.autoFinding : t.autoLoadingFirst);
-    try { await eng().autoRemove(status); setMsg(t.autoDone); }
-    catch { setMsg(t.autoFail); }
-    finally { setBusy(""); }
+    const status = (key) => { if (live()) setBusy(key === "finding" ? t.autoFinding : t.autoLoadingFirst); };
+    try { await target.autoRemove(status); if (live()) setMsg(t.autoDone); }
+    catch { if (live()) setMsg(t.autoFail); }
+    finally { if (live()) setBusy(""); }
+  };
+  const auto = () => runAuto();
+
+  // Before leaving, check the background was removed; ask if it looks like it wasn't.
+  const usePhoto = () => {
+    if (eng().looksUnremoved()) { setCheck(true); return; }
+    onDone(eng().result());
   };
 
   return (
@@ -104,6 +117,7 @@ export default function PhotoEditor({ image, onCancel, onDone }) {
           </div>
           <button className="chip" disabled={!s.canUndo} onClick={() => eng().undo()}>{t.undo}</button>
           <button className="chip" onClick={() => eng().resetMask()}>{t.resetMask}</button>
+          <button className="chip" aria-pressed={s.trim} onClick={() => eng().setTrim(!s.trim)}>{t.faceOnly}</button>
           {!move && (
             <button className="chip" disabled={s.viewZoom === 1} aria-label={t.zoomChip(Math.round(s.viewZoom * 100))} onClick={() => eng().resetView()}>{Math.round(s.viewZoom * 100)}%</button>
           )}
@@ -121,7 +135,7 @@ export default function PhotoEditor({ image, onCancel, onDone }) {
       </div>
       <div className="ed-actions">
         <button className="act" onClick={onCancel}>{t.cancel}</button>
-        <button className="act primary" ref={doneRef} onClick={() => onDone(eng().result())}>{t.usePhoto}</button>
+        <button className="act primary" ref={doneRef} onClick={usePhoto}>{t.usePhoto}</button>
       </div>
       {busy && (
         <div className="busy" role="status" aria-live="polite">
@@ -130,6 +144,18 @@ export default function PhotoEditor({ image, onCancel, onDone }) {
         </div>
       )}
       {tips && <Tips onClose={closeTips} dontShow={dontShow} setDontShow={setDontShow} />}
+      {check && (
+        <div className="tips-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setCheck(false); }}>
+          <div className="tips" role="alertdialog" aria-modal="true" aria-labelledby="checkTitle" aria-describedby="checkBody">
+            <h3 id="checkTitle">{t.checkTitle}</h3>
+            <p id="checkBody">{t.checkBody}</p>
+            <div className="dlg-actions">
+              <button className="act primary" autoFocus onClick={() => { setCheck(false); if (!s.trim) eng().setTrim(true); runAuto(); }}>{t.checkFix}</button>
+              <button className="act" onClick={() => { setCheck(false); onDone(eng().result()); }}>{t.checkKeep}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

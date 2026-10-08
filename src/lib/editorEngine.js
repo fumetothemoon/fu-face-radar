@@ -6,6 +6,8 @@ import { personMask } from "./segment.js";
 
 export const W = 800;
 const VIEW_MAX = 4, CROP_MAX = 4, MASK_MAX = 1400, UNDO_MAX = 12;
+// Head oval of the face guide, in frame coordinates. "Face only" trims to it.
+const GUIDE = { cx: W / 2, cy: W * 0.48, rx: W * 0.33, ry: W * 0.42 };
 
 export class EditorEngine {
   constructor(canvas, image, onState) {
@@ -26,7 +28,16 @@ export class EditorEngine {
     this.maskX = this.maskC.getContext("2d", { willReadFrequently: true });
     this.fillMask();
     this.compC = document.createElement("canvas"); this.compC.width = W; this.compC.height = W;
-    this.compX = this.compC.getContext("2d");
+    this.compX = this.compC.getContext("2d", { willReadFrequently: true });
+
+    // Soft-edged head oval used by "Face only".
+    this.trim = true;
+    this.trimC = document.createElement("canvas"); this.trimC.width = W; this.trimC.height = W;
+    const g = this.trimC.getContext("2d");
+    g.translate(GUIDE.cx, GUIDE.cy); g.scale(GUIDE.rx, GUIDE.ry);
+    const grad = g.createRadialGradient(0, 0, 0, 0, 0, 1);
+    grad.addColorStop(0, "#fff"); grad.addColorStop(0.9, "#fff"); grad.addColorStop(1, "rgba(255,255,255,0)");
+    g.fillStyle = grad; g.beginPath(); g.arc(0, 0, 1, 0, Math.PI * 2); g.fill();
 
     this.handlers = {
       pointerdown: (e) => this.down(e), pointermove: (e) => this.move(e),
@@ -41,7 +52,7 @@ export class EditorEngine {
   destroy() { for (const [k, fn] of Object.entries(this.handlers)) this.c.removeEventListener(k, fn); }
 
   emit() {
-    this.onState?.({ mode: this.mode, cropZoom: this.crop.z, viewZoom: this.view.z, canUndo: this.undoStack.length > 0 });
+    this.onState?.({ mode: this.mode, cropZoom: this.crop.z, viewZoom: this.view.z, canUndo: this.undoStack.length > 0, trim: this.trim });
   }
 
   result() {
@@ -85,6 +96,23 @@ export class EditorEngine {
     this.cursor = null; this.render(); this.emit();
   }
   setBrush(px) { this.brush = px; this.render(); }
+  setTrim(on) { this.trim = on; this.render(); this.emit(); }
+
+  // True when the edges of the frame are still mostly solid, i.e. the
+  // background was probably not removed. Ignores the "Face only" trim.
+  looksUnremoved() {
+    const keep = this.trim; this.trim = false; this.composite(); this.trim = keep;
+    const n = 100, c = document.createElement("canvas"); c.width = n; c.height = n;
+    const x = c.getContext("2d", { willReadFrequently: true }); x.drawImage(this.compC, 0, 0, n, n);
+    const a = x.getImageData(0, 0, n, n).data, band = 6;
+    let solid = 0, total = 0;
+    for (let y = 0; y < n * 0.6; y++) for (let i = 0; i < n; i++) {
+      if (y >= band && i >= band && i < n - band) continue; // top band + upper side bands only
+      total++; if (a[(y * n + i) * 4 + 3] > 128) solid++;
+    }
+    this.render();
+    return solid / total > 0.6;
+  }
 
   // ---- Mask ----
   fillMask() { const m = this.maskX; m.globalCompositeOperation = "source-over"; m.clearRect(0, 0, this.maskC.width, this.maskC.height); m.fillStyle = "#fff"; m.fillRect(0, 0, this.maskC.width, this.maskC.height); }
@@ -105,6 +133,7 @@ export class EditorEngine {
     c.globalCompositeOperation = "source-over"; c.clearRect(0, 0, W, W);
     c.drawImage(this.img, r.x, r.y, r.w, r.h);
     c.globalCompositeOperation = "destination-in"; c.drawImage(this.maskC, r.x, r.y, r.w, r.h);
+    if (this.trim) c.drawImage(this.trimC, 0, 0);
     c.globalCompositeOperation = "source-over";
   }
 
@@ -139,7 +168,7 @@ export class EditorEngine {
   drawGuide(x) {
     const line = (w, style) => { x.lineWidth = w; x.strokeStyle = style; };
     const paths = () => {
-      const cx = W / 2, cy = W * 0.48, rx = W * 0.33, ry = W * 0.42;
+      const { cx, cy, rx, ry } = GUIDE;
       x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
     };
     x.save();
