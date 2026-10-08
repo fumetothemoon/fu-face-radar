@@ -139,11 +139,8 @@ export class EditorEngine {
   drawGuide(x) {
     const line = (w, style) => { x.lineWidth = w; x.strokeStyle = style; };
     const paths = () => {
-      const cx = W / 2, cy = W * 0.46, rx = W * 0.33, ry = W * 0.41;
+      const cx = W / 2, cy = W * 0.48, rx = W * 0.33, ry = W * 0.42;
       x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
-      const neckX = W * 0.13, ny = cy + ry * Math.sqrt(1 - (neckX / rx) ** 2);
-      x.moveTo(cx - neckX, ny); x.lineTo(cx - neckX, W * 0.9); x.lineTo(W * 0.03, W * 0.94); x.lineTo(W * 0.03, W);
-      x.moveTo(cx + neckX, ny); x.lineTo(cx + neckX, W * 0.9); x.lineTo(W * 0.97, W * 0.94); x.lineTo(W * 0.97, W);
     };
     x.save();
     paths(); line(5, "rgba(0,0,0,0.28)"); x.stroke();
