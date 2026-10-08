@@ -2,6 +2,7 @@ import { useCallback, useEffect, useImperativeHandle, useRef, useState } from "r
 import { AXES as N, NOTES, PRESETS, asset } from "../config.js";
 import { FaceWarp } from "../lib/faceWarp.js";
 import { drawOverlay, themeColor } from "../lib/overlay.js";
+import { useTouchLock } from "../lib/useTouchLock.js";
 
 const SNAP = 1080;
 const BREATH_MIN = 3, BREATH_MAX = 10;
@@ -18,6 +19,8 @@ export default function RadarView({ ref, onLeave, onMakeImage, onDemoReady, leav
   const [rotOpen, setRotOpen] = useState(false);
 
   const stageRef = useRef(null), glRef = useRef(null), ovRef = useRef(null);
+  useTouchLock(glRef);
+  useTouchLock(ovRef);
   const warpRef = useRef(null), shownRef = useRef(PRESETS.ability.values.slice());
   const labelsRef = useRef(labels), baseRef = useRef(base), playingRef = useRef(false);
   const sizeRef = useRef(0), dprRef = useRef(1), rafRef = useRef(0), tweenRef = useRef(0);

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { saveImage } from "../lib/saveImage.js";
+import { useTouchLock } from "../lib/useTouchLock.js";
 
 const ZMAX = 3;
 
@@ -11,9 +12,11 @@ export default function ExportView({ snap, leaving, onClose, onSaved }) {
   const view = useRef({ z: 1, r: 0, x: 0, y: 0 }), ptrs = useRef(new Map()), pinch = useRef(null);
   const S = snap.face.width;
 
-  // Pan stays within the area the zoom has opened up.
+  useTouchLock(canvasRef, !withChart);
+
+  // The face can move anywhere as long as its centre stays inside the picture.
   const clamp = () => {
-    const v = view.current, lim = ((v.z - 1) * S) / 2;
+    const v = view.current, lim = S / 2;
     v.x = Math.max(-lim, Math.min(lim, v.x)); v.y = Math.max(-lim, Math.min(lim, v.y));
   };
 
@@ -29,7 +32,7 @@ export default function ExportView({ snap, leaving, onClose, onSaved }) {
       o.translate(S / 2 + v.x, S / 2 + v.y); o.rotate(v.r); o.scale(v.z, v.z); o.translate(-S / 2, -S / 2);
       o.drawImage(snap.face, 0, 0);
     }
-    blobRef.current = null; setMsg("");
+    blobRef.current = null; setMsg((m) => (m ? "" : m));
     clearTimeout(blobTimer.current);
     blobTimer.current = setTimeout(() => c.toBlob((b) => { blobRef.current = b; }, "image/png"), 250);
   }, [S, snap, withChart]);

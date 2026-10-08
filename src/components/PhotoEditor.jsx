@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { EditorEngine } from "../lib/editorEngine.js";
+import { useTouchLock } from "../lib/useTouchLock.js";
 import { asset } from "../config.js";
 
 const TIPS_SEEN = "ffr-tips-seen";
@@ -45,6 +46,7 @@ function Tips({ onClose }) {
 
 export default function PhotoEditor({ image, onCancel, onDone }) {
   const canvasRef = useRef(null), engineRef = useRef(null), doneRef = useRef(null);
+  useTouchLock(canvasRef);
   const [s, setS] = useState({ mode: "move", cropZoom: 1, viewZoom: 1, canUndo: false });
   const [brush, setBrush] = useState(48);
   const [msg, setMsg] = useState("");
