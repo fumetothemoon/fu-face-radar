@@ -50,3 +50,10 @@ Every push to `main` builds the site and deploys it to GitHub Pages through `.gi
 Put images in `public/gallery/` and list them in `GALLERY_IMAGES` in `src/config.js`,
 for example `["gallery/01.jpg", "gallery/02.jpg"]`. While the list is empty, the gallery shows warped
 versions of the demo face.
+
+## Visitor stats
+
+Visitor counting uses [GoatCounter](https://www.goatcounter.com) (no cookies, no personal data; photos never leave the
+device). Set `GOATCOUNTER_CODE` in `src/config.js` to your site code to turn it on. Besides visits, it counts these
+events: `photo-uploaded`, `photo-used`, `image-saved-with-chart`, `image-saved-face-only`, `opened-in-en` / `opened-in-zh`
+and `language-en` / `language-zh`.

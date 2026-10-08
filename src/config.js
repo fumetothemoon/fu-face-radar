@@ -1,5 +1,9 @@
 export const AXES = 6;
 
+// GoatCounter site code for visitor stats, e.g. "fufaceradar" for fufaceradar.goatcounter.com.
+// Leave empty to turn counting off.
+export const GOATCOUNTER_CODE = "";
+
 export const PRESETS = {
   ability: { labels: ["agility", "defense", "health", "speed", "strength", "wisdom"], values: [9, 4, 6, 9, 8, 7] },
   vibe: { labels: ["deep", "edgy", "flowy", "moody", "playful", "soft"], values: [6, 9, 7, 5, 8, 4] },

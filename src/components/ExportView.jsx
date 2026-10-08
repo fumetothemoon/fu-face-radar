@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { saveImage } from "../lib/saveImage.js";
+import { track } from "../lib/analytics.js";
 import { useTouchLock } from "../lib/useTouchLock.js";
 import { moodSummary } from "../lib/summary.js";
 import { useLang, useT } from "../i18n.js";
@@ -93,6 +94,7 @@ export default function ExportView({ snap, leaving, onClose, onSaved }) {
     if (!blobRef.current) { setMsg(t.preparing); return; }
     const result = await saveImage(blobRef.current, withChart ? "fu-face-radar.png" : "fu-face.png");
     if (result === "cancelled") return;
+    track(withChart ? "image-saved-with-chart" : "image-saved-face-only", withChart ? "Saved image with chart" : "Saved face-only image");
     setMsg(result === "shared" ? "" : t.saved);
     if (leaving) setTimeout(onSaved, 500);
   };

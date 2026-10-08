@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LangContext, STRINGS, initialLang, rememberLang } from "./i18n.js";
+import { startAnalytics, track } from "./lib/analytics.js";
 import RadarView from "./components/RadarView.jsx";
 import Landing from "./components/Landing.jsx";
 import PhotoEditor from "./components/PhotoEditor.jsx";
@@ -12,7 +13,9 @@ export default function App() {
   const radarRef = useRef(null), leaveBtnRef = useRef(null), uploadRef = useRef(null);
   const [lang, setLang] = useState(initialLang);
   useEffect(() => { document.documentElement.lang = lang === "zh" ? "zh-Hant-TW" : "en"; }, [lang]);
-  const toggleLang = () => { const next = lang === "zh" ? "en" : "zh"; setLang(next); rememberLang(next); };
+  const toggleLang = () => { const next = lang === "zh" ? "en" : "zh"; setLang(next); rememberLang(next); track(`language-${next}`, `Switched language to ${next}`); };
+  // Visit count, plus which language the visitor started in.
+  useEffect(() => { startAnalytics(); track(`opened-in-${initialLang()}`, `Opened in ${initialLang()}`); }, []);
   const [screen, setScreen] = useState("landing"); // "landing" | "radar"
   const [editImage, setEditImage] = useState(null);
   const [snap, setSnap] = useState(null);
@@ -27,6 +30,7 @@ export default function App() {
   }, []);
 
   const onFile = (file) => {
+    track("photo-uploaded", "Uploaded a photo");
     const url = URL.createObjectURL(file), im = new Image();
     im.onload = () => { setNote("privacy"); setEditImage(im); };
     im.onerror = () => { URL.revokeObjectURL(url); setNote("badFile"); };
@@ -36,6 +40,7 @@ export default function App() {
     setEditImage((im) => { if (im) URL.revokeObjectURL(im.src); return null; });
   }, []);
   const useEdited = (canvas) => {
+    track("photo-used", "Finished preparing a face");
     radarRef.current.setFace(canvas);
     radarRef.current.restart();
     closeEditor();
