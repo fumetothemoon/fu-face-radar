@@ -121,7 +121,6 @@ export default function RadarView({ ref, onLeave, onMakeImage, onDemoReady, leav
     setBase(next); baseRef.current = next;
     if (!playingRef.current) { cancelAnimationFrame(tweenRef.current); shownRef.current = next.slice(); setDisplay(next); draw(); }
   };
-  const onLabel = (k, text) => { const next = labels.slice(); next[k] = text; setLabels(next); };
 
   // Rotation: re-runs the warp setup at most once per frame.
   const rotate = useCallback((deg) => {
@@ -205,9 +204,9 @@ export default function RadarView({ ref, onLeave, onMakeImage, onDemoReady, leav
       <div className="controls">
         {Array.from({ length: N }, (_, k) => (
           <div className="stat" key={k}>
-            <input type="text" id={`lab${k}`} maxLength={14} aria-label={t.axisName(k)} value={labels[k]} onChange={(e) => onLabel(k, e.target.value)} />
+            <label className="stat-label" htmlFor={`val${k}`}>{labels[k]}</label>
             <output htmlFor={`val${k}`}>{round1(display[k])}</output>
-            <input type="range" id={`val${k}`} min="0" max="10" step="0.1" aria-label={t.axisValue(labels[k] || t.moods[k])} value={display[k]} onChange={(e) => onSlider(k, +e.target.value)} />
+            <input type="range" id={`val${k}`} min="0" max="10" step="0.1" value={display[k]} onChange={(e) => onSlider(k, +e.target.value)} />
           </div>
         ))}
       </div>
