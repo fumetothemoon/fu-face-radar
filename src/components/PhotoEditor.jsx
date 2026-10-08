@@ -2,29 +2,26 @@ import { useEffect, useRef, useState } from "react";
 import { EditorEngine } from "../lib/editorEngine.js";
 import { useTouchLock } from "../lib/useTouchLock.js";
 import { asset } from "../config.js";
+import { useT } from "../i18n.js";
 
 const TIPS_SEEN = "ffr-tips-seen";
-const HINTS = {
-  move: "Drag and pinch to fit your face inside the guide.",
-  erase: "Paint over anything that isn't your face. Pinch to zoom in up to 400%.",
-  restore: "Paint to bring parts back. Pinch to zoom in up to 400%.",
-};
 const EXAMPLES = [
-  { src: "hints/wrong-background.png", ok: false, caption: "Body left in" },
-  { src: "hints/wrong-body.png", ok: false, caption: "Face not centered" },
-  { src: "hints/right-face.png", ok: true, caption: "Just the face, centered" },
+  { src: "hints/wrong-background.png", ok: false },
+  { src: "hints/wrong-body.png", ok: false },
+  { src: "hints/right-face.png", ok: true },
 ];
 
 function Tips({ onClose, dontShow, setDontShow }) {
+  const t = useT();
   const btn = useRef(null);
   useEffect(() => { btn.current?.focus(); }, []);
   return (
     <div className="tips-backdrop" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="tips" role="dialog" aria-modal="true" aria-labelledby="tipsTitle">
-        <h3 id="tipsTitle">Leave only your face</h3>
-        <p>Remove everything except your face, and keep it centered inside the guide. Hair, shoulders and background stretch into messy spikes.</p>
+        <h3 id="tipsTitle">{t.tipsTitle}</h3>
+        <p>{t.tipsBody}</p>
         <ul className="tips-grid">
-          {EXAMPLES.map((ex) => (
+          {EXAMPLES.map((ex, i) => (
             <li key={ex.src}>
               <div className="tip-img">
                 <img src={asset(ex.src)} alt="" />
@@ -34,21 +31,22 @@ function Tips({ onClose, dontShow, setDontShow }) {
                   </svg>
                 </span>
               </div>
-              <span className="tip-cap"><span className="sr-only">{ex.ok ? "Correct: " : "Wrong: "}</span>{ex.caption}</span>
+              <span className="tip-cap"><span className="sr-only">{ex.ok ? t.correct : t.wrong}</span>{t.tipCaptions[i]}</span>
             </li>
           ))}
         </ul>
         <label className="tips-check" htmlFor="tipsDontShow">
           <input type="checkbox" id="tipsDontShow" checked={dontShow} onChange={(e) => setDontShow(e.target.checked)} />
-          <span>Don't show again</span>
+          <span>{t.dontShow}</span>
         </label>
-        <button className="act primary" ref={btn} onClick={onClose}>Got it</button>
+        <button className="act primary" ref={btn} onClick={onClose}>{t.gotIt}</button>
       </div>
     </div>
   );
 }
 
 export default function PhotoEditor({ image, onCancel, onDone }) {
+  const t = useT();
   const canvasRef = useRef(null), engineRef = useRef(null), doneRef = useRef(null);
   useTouchLock(canvasRef);
   const [s, setS] = useState({ mode: "move", cropZoom: 1, viewZoom: 1, canUndo: false });
@@ -79,9 +77,10 @@ export default function PhotoEditor({ image, onCancel, onDone }) {
   const move = s.mode === "move";
 
   const auto = async () => {
-    setMsg(""); setBusy("Loading the background remover…");
-    try { await eng().autoRemove(setBusy); setMsg("Done. Switch to Erase or Restore to touch up the edges."); }
-    catch { setMsg("Automatic removal didn't load. Check your connection and try again, or use Erase."); }
+    setMsg(""); setBusy(t.autoLoading);
+    const status = (key) => setBusy(key === "finding" ? t.autoFinding : t.autoLoadingFirst);
+    try { await eng().autoRemove(status); setMsg(t.autoDone); }
+    catch { setMsg(t.autoFail); }
     finally { setBusy(""); }
   };
 
@@ -89,40 +88,40 @@ export default function PhotoEditor({ image, onCancel, onDone }) {
     <div className="editor" role="dialog" aria-modal="true" aria-labelledby="edTitle">
       <div className="ed-head">
         <div className="ed-title-row">
-          <h2 id="edTitle">Prepare your face</h2>
-          <button className="chip" onClick={() => setTips(true)} aria-haspopup="dialog">Tips</button>
+          <h2 id="edTitle">{t.prepare}</h2>
+          <button className="chip" onClick={() => setTips(true)} aria-haspopup="dialog">{t.tips}</button>
         </div>
-        <p>{HINTS[s.mode]}</p>
+        <p>{t.hints[s.mode]}</p>
       </div>
-      <canvas ref={canvasRef} className={`ed-canvas checker${move ? " move" : ""}`} aria-label="Photo editor with face guide" />
+      <canvas ref={canvasRef} className={`ed-canvas checker${move ? " move" : ""}`} aria-label={t.editorAria} />
       <div className="ed-controls">
-        <button className="act" onClick={auto} disabled={!!busy}>Remove background automatically</button>
+        <button className="act" onClick={auto} disabled={!!busy}>{t.autoRemove}</button>
         <div className="ed-row">
-          <div className="seg" role="group" aria-label="Tool">
+          <div className="seg" role="group" aria-label={t.toolGroup}>
             {["move", "erase", "restore"].map((m) => (
-              <button key={m} className="chip" aria-pressed={s.mode === m} onClick={() => eng().setMode(m)}>{m[0].toUpperCase() + m.slice(1)}</button>
+              <button key={m} className="chip" aria-pressed={s.mode === m} onClick={() => eng().setMode(m)}>{t.tools[m]}</button>
             ))}
           </div>
-          <button className="chip" disabled={!s.canUndo} onClick={() => eng().undo()}>Undo</button>
-          <button className="chip" onClick={() => eng().resetMask()}>Reset</button>
+          <button className="chip" disabled={!s.canUndo} onClick={() => eng().undo()}>{t.undo}</button>
+          <button className="chip" onClick={() => eng().resetMask()}>{t.resetMask}</button>
           {!move && (
-            <button className="chip" disabled={s.viewZoom === 1} aria-label={`Zoom ${Math.round(s.viewZoom * 100)}%, tap to reset to 100%`} onClick={() => eng().resetView()}>{Math.round(s.viewZoom * 100)}%</button>
+            <button className="chip" disabled={s.viewZoom === 1} aria-label={t.zoomChip(Math.round(s.viewZoom * 100))} onClick={() => eng().resetView()}>{Math.round(s.viewZoom * 100)}%</button>
           )}
         </div>
         {move ? (
-          <label className="ed-row" htmlFor="zoom"><span>Zoom</span>
+          <label className="ed-row" htmlFor="zoom"><span>{t.zoom}</span>
             <input type="range" id="zoom" min="1" max="4" step="0.01" value={s.cropZoom} onChange={(e) => eng().setCropZoom(+e.target.value)} />
           </label>
         ) : (
-          <label className="ed-row" htmlFor="brush"><span>Brush</span>
+          <label className="ed-row" htmlFor="brush"><span>{t.brush}</span>
             <input type="range" id="brush" min="10" max="140" step="1" value={brush} onChange={(e) => { setBrush(+e.target.value); eng().setBrush(+e.target.value); }} />
           </label>
         )}
         <p className="ed-msg" aria-live="polite">{msg}</p>
       </div>
       <div className="ed-actions">
-        <button className="act" onClick={onCancel}>Cancel</button>
-        <button className="act primary" ref={doneRef} onClick={() => onDone(eng().result())}>Use this photo</button>
+        <button className="act" onClick={onCancel}>{t.cancel}</button>
+        <button className="act primary" ref={doneRef} onClick={() => onDone(eng().result())}>{t.usePhoto}</button>
       </div>
       {busy && (
         <div className="busy" role="status" aria-live="polite">

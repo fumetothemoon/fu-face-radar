@@ -19,12 +19,12 @@ export function drawOverlay(c, S, scale, labels, values) {
     let lx = C + co * Rout * 1.13; const ly = C + si * Rout * 1.13;
     c.textAlign = Math.abs(co) < 0.2 ? "center" : co > 0 ? "left" : "right";
     c.textBaseline = si < -0.8 ? "bottom" : si > 0.8 ? "top" : "middle";
-    c.font = `400 ${fs}px "IBM Plex Mono", monospace`; c.fillStyle = ink;
+    c.font = `400 ${fs}px "IBM Plex Mono", "Noto Sans TC", monospace`; c.fillStyle = ink;
     const label = labels[k] || " ";
     const tw = c.measureText(label).width, pad = S * 0.012;
     if (c.textAlign === "right") lx = Math.max(lx, pad + tw); else if (c.textAlign === "left") lx = Math.min(lx, S - pad - tw);
     c.fillText(label, lx, ly);
-    c.font = `400 ${Math.round(fs * 0.85)}px "IBM Plex Mono", monospace`; c.fillStyle = muted;
+    c.font = `400 ${Math.round(fs * 0.85)}px "IBM Plex Mono", "Noto Sans TC", monospace`; c.fillStyle = muted;
     const dy = c.textBaseline === "bottom" ? -fs * 1.2 : fs * 1.25;
     c.fillText((Math.round(values[k] * 10) / 10).toString(), lx, ly + (c.textBaseline === "middle" ? fs * 1.15 : dy));
   }

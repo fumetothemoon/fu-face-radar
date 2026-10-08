@@ -9,9 +9,11 @@ Warp your face into a six-point radar chart of your abilities or mood.
 1. Upload a selfie.
 2. **Prepare your face**: frame it inside the face guide (Move), then remove the background automatically
    or with the Erase/Restore brush (pinch to zoom up to 400%). Tap **Tips** for good and bad examples.
-3. Drag the six sliders. Values above 2 stretch your face toward that word; all 10s make a spider-web star.
+3. Drag the six mood sliders (happy, calm, tired, sad, angry, anxious). Values above 2 stretch your face toward that
+   feeling; all 10s make a spider-web star.
    Rotate the face with the **Rotate** control or a two-finger twist on the chart.
-4. Press **Breathe** to animate, or **Save** to download a PNG. With labels off you can move, zoom and rotate the face
+4. Press **Breathe** to animate, or **Save** to download a PNG. The save page shows a short note picked from your values
+   (rules and messages in `src/lib/summary.js`). With labels off you can move, zoom and rotate the face
    (two fingers on phones; wheel and Shift + wheel on desktop). **Reset** sets every value to 0 and restores the labels.
 
 Photos are processed entirely in the browser and never uploaded. Automatic background removal uses
@@ -37,7 +39,9 @@ Every push to `main` builds the site and deploys it to GitHub Pages through `.gi
 | `src/lib/overlay.js` | Radar rings, labels and values |
 | `src/lib/editorEngine.js` | Crop, mask brush, pinch zoom and undo |
 | `src/lib/segment.js` | Automatic background removal |
-| `src/config.js` | Presets, notes and gallery images |
+| `src/config.js` | Default mood values, hidden ability/vibe presets, gallery images |
+| `src/i18n.js` | English and Traditional Chinese text; language is auto-detected and switchable on the upload page |
+| `src/lib/summary.js` | Rules and messages for the note on the save page |
 | `public/demo-face.png` | Demo face used for the generated gallery |
 | `public/hints/` | Example images shown in the Tips dialog |
 

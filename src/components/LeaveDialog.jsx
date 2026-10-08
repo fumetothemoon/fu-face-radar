@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
+import { useT } from "../i18n.js";
 
 export default function LeaveDialog({ onStay, onLeave, onSaveLeave }) {
+  const t = useT();
   const stayRef = useRef(null);
   useEffect(() => {
     stayRef.current?.focus();
@@ -11,12 +13,12 @@ export default function LeaveDialog({ onStay, onLeave, onSaveLeave }) {
   return (
     <div className="dlg-backdrop" onClick={(e) => { if (e.target === e.currentTarget) onStay(); }}>
       <div className="dlg" role="alertdialog" aria-modal="true" aria-labelledby="leaveTitle" aria-describedby="leaveDesc">
-        <h2 id="leaveTitle">Leave current session without saving?</h2>
-        <p id="leaveDesc">Your stretched face and slider values will be lost.</p>
+        <h2 id="leaveTitle">{t.leaveTitle}</h2>
+        <p id="leaveDesc">{t.leaveDesc}</p>
         <div className="dlg-actions">
-          <button className="act primary" onClick={onSaveLeave}>Save and leave</button>
-          <button className="act danger" onClick={onLeave}>Leave anyway</button>
-          <button className="act" ref={stayRef} onClick={onStay}>Stay</button>
+          <button className="act primary" onClick={onSaveLeave}>{t.saveLeave}</button>
+          <button className="act danger" onClick={onLeave}>{t.leaveAnyway}</button>
+          <button className="act" ref={stayRef} onClick={onStay}>{t.stay}</button>
         </div>
       </div>
     </div>

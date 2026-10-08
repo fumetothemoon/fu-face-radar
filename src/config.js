@@ -5,6 +5,11 @@ export const PRESETS = {
   vibe: { labels: ["deep", "edgy", "flowy", "moody", "playful", "soft"], values: [6, 9, 7, 5, 8, 4] },
 };
 
+// Mood axes, clockwise from the top: happy, calm, tired, sad, angry, anxious.
+// Labels come from src/i18n.js (English / Traditional Chinese).
+export const MOOD_VALUES = [8, 6, 4, 2, 3, 5];
+
+// Abilities / vibes are hidden for now; kept here so they can come back.
 export const NOTES = {
   ability: "Track your ability with your face. Slide each skill up and watch your expression stretch to match.",
   vibe: "Track your mood with your face. Slide each feeling up and watch your expression stretch to match.",

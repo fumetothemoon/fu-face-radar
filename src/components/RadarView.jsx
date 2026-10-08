@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { AXES as N, NOTES, PRESETS, asset } from "../config.js";
+import { AXES as N, MOOD_VALUES, asset } from "../config.js";
+import { useT } from "../i18n.js";
 import { FaceWarp } from "../lib/faceWarp.js";
 import { drawOverlay, themeColor } from "../lib/overlay.js";
 import { useTouchLock } from "../lib/useTouchLock.js";
@@ -10,10 +11,10 @@ const reduceMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)
 const round1 = (v) => Math.round(v * 10) / 10;
 
 export default function RadarView({ ref, onLeave, onMakeImage, onDemoReady, leaveBtnRef }) {
-  const [preset, setPreset] = useState("ability");
-  const [labels, setLabels] = useState(PRESETS.ability.labels);
-  const [base, setBase] = useState(PRESETS.ability.values);
-  const [display, setDisplay] = useState(PRESETS.ability.values);
+  const t = useT();
+  const [labels, setLabels] = useState(t.moods);
+  const [base, setBase] = useState(MOOD_VALUES);
+  const [display, setDisplay] = useState(MOOD_VALUES);
   const [playing, setPlaying] = useState(false);
   const [rotation, setRotationState] = useState(0);
   const [rotOpen, setRotOpen] = useState(false);
@@ -21,7 +22,7 @@ export default function RadarView({ ref, onLeave, onMakeImage, onDemoReady, leav
   const stageRef = useRef(null), glRef = useRef(null), ovRef = useRef(null);
   useTouchLock(glRef);
   useTouchLock(ovRef);
-  const warpRef = useRef(null), shownRef = useRef(PRESETS.ability.values.slice());
+  const warpRef = useRef(null), shownRef = useRef(MOOD_VALUES.slice());
   const labelsRef = useRef(labels), baseRef = useRef(base), playingRef = useRef(false);
   const sizeRef = useRef(0), dprRef = useRef(1), rafRef = useRef(0), tweenRef = useRef(0);
   labelsRef.current = labels; baseRef.current = base;
@@ -106,10 +107,14 @@ export default function RadarView({ ref, onLeave, onMakeImage, onDemoReady, leav
     if (!playingRef.current) tween(vals, ms);
   }, [tween]);
 
-  const applyPreset = useCallback((name) => {
-    setPreset(name); setLabels(PRESETS[name].labels.slice()); labelsRef.current = PRESETS[name].labels.slice();
-    setValues(PRESETS[name].values.slice(), 700);
-  }, [setValues]);
+  // Back to the default mood values and the default labels for the current language.
+  const resetMood = useCallback(() => {
+    const l = t.moods.slice(); setLabels(l); labelsRef.current = l;
+    setValues(MOOD_VALUES.slice(), 700);
+  }, [setValues, t]);
+
+  // Switching language resets the labels to that language.
+  useEffect(() => { setLabels(t.moods.slice()); labelsRef.current = t.moods.slice(); }, [t]);
 
   const onSlider = (k, v) => {
     const next = baseRef.current.slice(); next[k] = v;
@@ -148,8 +153,8 @@ export default function RadarView({ ref, onLeave, onMakeImage, onDemoReady, leav
 
   useImperativeHandle(ref, () => ({
     setFace(src) { rotRef.current = 0; setRotationState(0); setRotOpen(false); warpRef.current.setFace(src); draw(); },
-    reset() { if (playingRef.current) stopPlaying(); applyPreset("ability"); },
-    restart() { if (playingRef.current) stopPlaying(); applyPreset(preset); },
+    reset() { if (playingRef.current) stopPlaying(); resetMood(); },
+    restart() { if (playingRef.current) stopPlaying(); resetMood(); },
     stop() { if (playingRef.current) stopPlaying(); },
     snapshot() {
       draw();
@@ -157,7 +162,7 @@ export default function RadarView({ ref, onLeave, onMakeImage, onDemoReady, leav
       face.getContext("2d").drawImage(glRef.current, 0, 0, SNAP, SNAP);
       const chart = document.createElement("canvas"); chart.width = SNAP; chart.height = SNAP;
       drawOverlay(chart.getContext("2d"), sizeRef.current, SNAP / sizeRef.current, labelsRef.current, shownRef.current);
-      return { face, chart, bg: themeColor("--bg") };
+      return { face, chart, bg: themeColor("--bg"), values: shownRef.current.slice() };
     },
     renderTiles(sets, T = 360) {
       if (!sizeRef.current || !warpRef.current?.ready) return [];
@@ -172,28 +177,24 @@ export default function RadarView({ ref, onLeave, onMakeImage, onDemoReady, leav
       shownRef.current = keep; draw();
       return out;
     },
-  }), [applyPreset, draw, preset, stopPlaying]);
+  }), [resetMood, draw, stopPlaying]);
 
   return (
     <div className="wrap">
       <header>
         <h1>Fu Face <em>Radar</em></h1>
-        <div className="presets" role="group" aria-label="Label preset">
-          <button className="chip" aria-pressed={preset === "ability"} onClick={() => applyPreset("ability")}>abilities</button>
-          <button className="chip" aria-pressed={preset === "vibe"} onClick={() => applyPreset("vibe")}>vibes</button>
-        </div>
       </header>
 
       <div className="stage" ref={stageRef} onPointerDown={onStageDown} onPointerMove={onStageMove} onPointerUp={onStageUp} onPointerCancel={onStageUp}>
         <canvas ref={glRef} aria-hidden="true" />
-        <canvas ref={ovRef} role="img" aria-label="Portrait stretched into a six-point radar shape" />
+        <canvas ref={ovRef} role="img" aria-label={t.chartAria} />
         <button className="chip rot-btn" aria-expanded={rotOpen} aria-controls="rotPanel" onClick={() => setRotOpen((o) => !o)}>
           <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7" /><path d="M20 4v7h-7" /></svg>
-          <span>{rotation === 0 ? "Rotate" : `${rotation}°`}</span>
+          <span>{rotation === 0 ? t.rotate : `${rotation}°`}</span>
         </button>
         {rotOpen && (
           <div className="rot-panel" id="rotPanel">
-            <label className="ed-row" htmlFor="rotate"><span>Rotate</span>
+            <label className="ed-row" htmlFor="rotate"><span>{t.rotate}</span>
               <input type="range" id="rotate" min="-180" max="180" step="1" value={rotation} onChange={(e) => rotate(+e.target.value)} />
             </label>
             <button className="chip" disabled={rotation === 0} onClick={() => rotate(0)}>0°</button>
@@ -204,23 +205,23 @@ export default function RadarView({ ref, onLeave, onMakeImage, onDemoReady, leav
       <div className="controls">
         {Array.from({ length: N }, (_, k) => (
           <div className="stat" key={k}>
-            <input type="text" id={`lab${k}`} maxLength={14} aria-label={`Axis ${k + 1} name`} value={labels[k]} onChange={(e) => onLabel(k, e.target.value)} />
+            <input type="text" id={`lab${k}`} maxLength={14} aria-label={t.axisName(k)} value={labels[k]} onChange={(e) => onLabel(k, e.target.value)} />
             <output htmlFor={`val${k}`}>{round1(display[k])}</output>
-            <input type="range" id={`val${k}`} min="0" max="10" step="0.1" aria-label={`${labels[k] || `Axis ${k + 1}`} value`} value={display[k]} onChange={(e) => onSlider(k, +e.target.value)} />
+            <input type="range" id={`val${k}`} min="0" max="10" step="0.1" aria-label={t.axisValue(labels[k] || t.moods[k])} value={display[k]} onChange={(e) => onSlider(k, +e.target.value)} />
           </div>
         ))}
       </div>
 
       <div className="actions">
-        <button className="act icon" ref={leaveBtnRef} aria-label="Back to upload" title="Back to upload" onClick={onLeave}>
+        <button className="act icon" ref={leaveBtnRef} aria-label={t.back} title={t.back} onClick={onLeave}>
           <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg>
         </button>
-        <button className="act primary" onClick={() => (playing ? stopPlaying() : startPlaying())}>{playing ? "Pause" : "Breathe"}</button>
-        <button className="act" onClick={() => setValues(baseRef.current.map(() => Math.round(Math.random() * 20) / 2))}>Shuffle</button>
-        <button className="act" onClick={() => { const l = PRESETS[preset].labels.slice(); setLabels(l); labelsRef.current = l; setValues(Array(N).fill(0)); }}>Reset</button>
-        <button className="act" onClick={onMakeImage}>Save</button>
+        <button className="act primary" onClick={() => (playing ? stopPlaying() : startPlaying())}>{playing ? t.pause : t.breathe}</button>
+        <button className="act" onClick={() => setValues(baseRef.current.map(() => Math.round(Math.random() * 20) / 2))}>{t.shuffle}</button>
+        <button className="act" onClick={() => { const l = t.moods.slice(); setLabels(l); labelsRef.current = l; setValues(Array(N).fill(0)); }}>{t.reset}</button>
+        <button className="act" onClick={onMakeImage}>{t.save}</button>
       </div>
-      <p className="note">{NOTES[preset]}</p>
+      <p className="note">{t.radarNote}</p>
     </div>
   );
 }

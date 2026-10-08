@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { saveImage } from "../lib/saveImage.js";
 import { useTouchLock } from "../lib/useTouchLock.js";
+import { moodSummary } from "../lib/summary.js";
+import { useLang, useT } from "../i18n.js";
 
 const ZMAX = 3;
 
 export default function ExportView({ snap, leaving, onClose, onSaved }) {
+  const t = useT(), lang = useLang();
+  const summary = moodSummary(snap.values, lang);
   const [withChart, setWithChart] = useState(false);
   const [msg, setMsg] = useState("");
   const canvasRef = useRef(null), blobRef = useRef(null), dlRef = useRef(null), blobTimer = useRef(0);
@@ -86,31 +90,32 @@ export default function ExportView({ snap, leaving, onClose, onSaved }) {
   }, [withChart]);
 
   const download = async () => {
-    if (!blobRef.current) { setMsg("Still preparing the image. Try again in a second."); return; }
+    if (!blobRef.current) { setMsg(t.preparing); return; }
     const result = await saveImage(blobRef.current, withChart ? "fu-face-radar.png" : "fu-face.png");
     if (result === "cancelled") return;
-    setMsg(result === "shared" ? "" : "Saved.");
+    setMsg(result === "shared" ? "" : t.saved);
     if (leaving) setTimeout(onSaved, 500);
   };
 
   return (
-    <div className="export" role="dialog" aria-modal="true" aria-label="Save image">
+    <div className="export" role="dialog" aria-modal="true" aria-label={t.saveDialog}>
       <canvas
         ref={canvasRef} width={S} height={S}
         className={`ex-canvas${withChart ? "" : " bare"}`}
-        role="img" aria-label={withChart ? "Warped portrait with radar labels and circles" : "Warped portrait on a transparent background"}
+        role="img" aria-label={withChart ? t.exportAriaChart : t.exportAriaBare}
         onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onWheel={onWheel}
       />
+      <p className="summary">{summary}</p>
       <label className="switch" htmlFor="showChart">
         <input type="checkbox" id="showChart" role="switch" checked={withChart} onChange={(e) => setWithChart(e.target.checked)} />
         <span className="track" aria-hidden="true" />
-        <span>Show labels and circles</span>
+        <span>{t.showChart}</span>
       </label>
       <div className="export-actions">
-        <button className="act primary" ref={dlRef} onClick={download}>{leaving ? "Download and leave" : "Download"}</button>
-        <button className="act" onClick={onClose}>Back to radar</button>
+        <button className="act primary" ref={dlRef} onClick={download}>{leaving ? t.downloadLeave : t.download}</button>
+        <button className="act" onClick={onClose}>{t.backToRadar}</button>
       </div>
-      <p aria-live="polite">{withChart || msg ? msg : "Drag to move. Pinch to zoom, twist with two fingers to rotate."}</p>
+      <p aria-live="polite">{withChart || msg ? msg : t.exportHint}</p>
     </div>
   );
 }

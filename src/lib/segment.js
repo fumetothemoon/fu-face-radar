@@ -35,9 +35,9 @@ function runSegment(ss, image) {
 
 // Returns a 256×256 canvas whose alpha is the person mask.
 export async function personMask(image, onStatus) {
-  onStatus?.("Loading the background remover. The first time takes a few seconds.");
+  onStatus?.("loading");
   const seg = await getSegmenter();
-  onStatus?.("Finding you in the photo…");
+  onStatus?.("finding");
   await new Promise((r) => setTimeout(r, 30));
   const r = await runSegment(seg, image), sm = r.segmentationMask;
   const mw = 256, mh = 256, rc = document.createElement("canvas"); rc.width = mw; rc.height = mh;

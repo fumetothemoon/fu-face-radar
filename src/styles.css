@@ -1,9 +1,9 @@
 /* Layout: one centered column; the warped portrait is the hero, quiet mono controls underneath, like a lab readout. */
 :root {
   --bg: #f6f6f4; --surface: #ffffff; --ink: #1b1b1a; --muted: #75746f; --line: #c9c8c2; --accent: #c2477a; --danger: #b3261e; --ok: #2e7d32;
-  --display: "Instrument Serif", Georgia, serif;
-  --body: "Figtree", system-ui, sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --display: "Instrument Serif", "Noto Serif TC", Georgia, serif;
+  --body: "Figtree", "Noto Sans TC", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", "Noto Sans TC", ui-monospace, monospace;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #151515; --surface: #1e1e1d; --ink: #efeeea; --muted: #9b9a94; --line: #4a4946; --accent: #ec84ad; --danger: #e5534b; --ok: #3f9a46; color-scheme: dark } }
 :root[data-theme="dark"] { --bg: #151515; --surface: #1e1e1d; --ink: #efeeea; --muted: #9b9a94; --line: #4a4946; --accent: #ec84ad; --danger: #e5534b; --ok: #3f9a46; color-scheme: dark }
@@ -46,7 +46,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .switch input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px }
 .export img.bare { background-image: repeating-conic-gradient(var(--line) 0 25%, transparent 0 50%); background-size: 4cqw 4cqw }
 @media (prefers-reduced-motion: reduce) { .switch .track, .switch .track::after { transition: none } }
-.landing { position: absolute; inset: 0; z-index: 2; background: var(--surface); display: flex; flex-direction: column; justify-content: space-between; gap: 5cqw; padding: 8cqw 0 7cqw; overflow: hidden }
+.landing { position: absolute; inset: 0; z-index: 2; background: var(--surface); display: flex; flex-direction: column; justify-content: space-between; gap: 5cqw; padding: 18cqw 0 7cqw; overflow: hidden }
 .gallery { display: flex; flex-direction: column; gap: 3cqw; overflow: hidden }
 .g-track { display: flex; gap: 3cqw; width: max-content; animation: marquee 40s linear infinite }
 .g-track.rev { animation-direction: reverse; animation-duration: 46s }
@@ -114,3 +114,8 @@ button.act.danger { color: var(--danger); border-color: var(--danger) }
 .ex-zoom-val { min-width: 9cqw; text-align: right; font-variant-numeric: tabular-nums }
 .tips-check { display: inline-flex; align-items: center; gap: 2cqw; font-size: 3.5cqw; color: var(--ink); cursor: pointer; justify-self: start }
 .tips-check input { width: 4.4cqw; height: 4.4cqw; margin: 0; accent-color: var(--accent) }
+.lang-btn { position: absolute; top: 4cqw; right: 5cqw; z-index: 1; width: 11cqw; height: 11cqw; border-radius: 50%; display: grid; grid-auto-flow: column; place-content: center; gap: 0.3cqw;
+  border: 1px solid var(--line); background: var(--surface); color: var(--muted); font-family: var(--body); font-size: 3.4cqw; line-height: 1; cursor: pointer; padding: 0 }
+.lang-btn .on { color: var(--ink); font-weight: 500 }
+.lang-btn:hover { border-color: var(--ink) }
+.export .summary { margin: 0; max-width: 92%; text-align: center; font-size: 4cqw; line-height: 1.45; color: var(--ink); text-wrap: balance; min-height: 2.9em }
