@@ -15,7 +15,7 @@ const EXAMPLES = [
   { src: "hints/right-face.png", ok: true, caption: "Just the face, centered" },
 ];
 
-function Tips({ onClose }) {
+function Tips({ onClose, dontShow, setDontShow }) {
   const btn = useRef(null);
   useEffect(() => { btn.current?.focus(); }, []);
   return (
@@ -38,6 +38,10 @@ function Tips({ onClose }) {
             </li>
           ))}
         </ul>
+        <label className="tips-check" htmlFor="tipsDontShow">
+          <input type="checkbox" id="tipsDontShow" checked={dontShow} onChange={(e) => setDontShow(e.target.checked)} />
+          <span>Don't show again</span>
+        </label>
         <button className="act primary" ref={btn} onClick={onClose}>Got it</button>
       </div>
     </div>
@@ -51,7 +55,9 @@ export default function PhotoEditor({ image, onCancel, onDone }) {
   const [brush, setBrush] = useState(48);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState("");
-  const [tips, setTips] = useState(() => { try { return !localStorage.getItem(TIPS_SEEN); } catch { return true; } });
+  const optedOut = () => { try { return localStorage.getItem(TIPS_SEEN) === "1"; } catch { return false; } };
+  const [tips, setTips] = useState(() => !optedOut());
+  const [dontShow, setDontShow] = useState(optedOut);
 
   useEffect(() => {
     const eng = (engineRef.current = new EditorEngine(canvasRef.current, image, setS));
@@ -64,7 +70,11 @@ export default function PhotoEditor({ image, onCancel, onDone }) {
   });
   useEffect(() => { if (!tips) doneRef.current?.focus(); }, [tips]);
 
-  const closeTips = () => { setTips(false); try { localStorage.setItem(TIPS_SEEN, "1"); } catch { /* private mode */ } };
+  // Tips open every time this page opens, unless "Don't show again" was ticked.
+  const closeTips = () => {
+    setTips(false);
+    try { if (dontShow) localStorage.setItem(TIPS_SEEN, "1"); else localStorage.removeItem(TIPS_SEEN); } catch { /* private mode */ }
+  };
   const eng = () => engineRef.current;
   const move = s.mode === "move";
 
@@ -120,7 +130,7 @@ export default function PhotoEditor({ image, onCancel, onDone }) {
           <p>{busy}</p>
         </div>
       )}
-      {tips && <Tips onClose={closeTips} />}
+      {tips && <Tips onClose={closeTips} dontShow={dontShow} setDontShow={setDontShow} />}
     </div>
   );
 }

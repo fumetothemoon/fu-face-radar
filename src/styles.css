@@ -112,3 +112,5 @@ button.act.danger { color: var(--danger); border-color: var(--danger) }
 .ex-canvas.bare { touch-action: none; cursor: grab; background-image: repeating-conic-gradient(var(--line) 0 25%, transparent 0 50%); background-size: 4cqw 4cqw }
 .ex-zoom { width: 100% }
 .ex-zoom-val { min-width: 9cqw; text-align: right; font-variant-numeric: tabular-nums }
+.tips-check { display: inline-flex; align-items: center; gap: 2cqw; font-size: 3.5cqw; color: var(--ink); cursor: pointer; justify-self: start }
+.tips-check input { width: 4.4cqw; height: 4.4cqw; margin: 0; accent-color: var(--accent) }

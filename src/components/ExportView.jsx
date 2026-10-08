@@ -5,7 +5,7 @@ import { useTouchLock } from "../lib/useTouchLock.js";
 const ZMAX = 3;
 
 export default function ExportView({ snap, leaving, onClose, onSaved }) {
-  const [withChart, setWithChart] = useState(true);
+  const [withChart, setWithChart] = useState(false);
   const [msg, setMsg] = useState("");
   const canvasRef = useRef(null), blobRef = useRef(null), dlRef = useRef(null), blobTimer = useRef(0);
   // Face-only framing: zoom z, rotation r (radians), offset x/y from the centre.
